@@ -8,6 +8,7 @@ export default class App extends Component {
     this.state = {
       botao: 'Iniciar',
       numero: 0,
+      ultimo: '',
     };
     this.timer = null;
 
@@ -16,35 +17,47 @@ export default class App extends Component {
   }
 
   vai() {
-    if (this.timer != null) {
-      clearInterval(this.timer);
+  if (this.timer != null) {
+    clearInterval(this.timer);
+    this.setState({
+      botao: 'Retomar',
+    });
+    this.timer = null;
+  } else {
+    this.inicio = Date.now() - this.state.numero * 1000; // <-- Corrige o ponto de retomada
+    this.timer = setInterval(() => {
+      let agora = Date.now();
+      let tempo = (agora - this.inicio) / 1000;
+      if (tempo >= 60) {
+        clearInterval(this.timer);
+        this.timer = null;
+        tempo = 60;
+      }
       this.setState({
-        botao: 'Retomar',
+        numero: tempo,
+        botao: 'Pausar',
       });
-      this.timer = null;
-    } else {
-      this.timer = setInterval(() => {
-        this.setState({
-          numero: this.state.numero + 0.01,
-          botao: 'Pausar',
-        });
-      }, 10);
-    }
+    }, 10);
   }
-  limpar() {
-      clearInterval(this.timer);
-      this.setState({
-        botao: 'Iniciar',
-        numero: 0,
-      });
-      this.timer = null;
-  }
+}
+
+limpar() {
+  clearInterval(this.timer);
+  this.setState({
+    ultimo: this.state.numero.toFixed(2),
+    botao: 'Iniciar',
+    numero: 0,
+  });
+  this.timer = null;
+  this.inicio = null;
+}
   render() {
     return (
       <View style={styles.container}>
         <Image source={require('./imgs/cronometro.png')} style={styles.timer} />
         <Text style={styles.timer}>{this.state.numero.toFixed(2)}</Text>
 
+        <Text style={styles.Titulo} >Cronômetro</Text>
         <View style={styles.btnArea}>
           <TouchableOpacity style={styles.btn} onPress={this.vai}>
             <Text style={styles.btnTexto}>{this.state.botao}</Text>
@@ -54,7 +67,10 @@ export default class App extends Component {
             <Text style={styles.btnTexto}>Limpar</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.Titulo} >Cronômetro</Text>
+
+        <View style={styles.areaUltimo}>
+            <Text style={styles.Corrida} >Ultimo tempo: {this.state.ultimo}</Text>
+        </View>
       </View>
     );
   }
@@ -94,12 +110,20 @@ const styles = StyleSheet.create({
     color: '#00aeef',
   },
   Titulo:{
-    fontSize: 40,
+    fontSize: 45,
     fontWeight: 'bold',
     textDecorationLine: 'underline',
     position: 'absolute',
-    bottom: 120,
+    bottom: 150,
     color: '#fff',
-
+  },
+  areaUltimo:{
+    position: 'absolute',
+    bottom: 90,
+  },
+  Corrida:{
+    fontSize: 25,
+    fontStyle: 'italic',
+    color: '#FFF'
   }
 });
